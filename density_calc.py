@@ -4,7 +4,6 @@
 # mass (g)
 # length (mm)
 
-
 class material:
     def __init__(self, name, density):
         self.name = name
@@ -22,7 +21,7 @@ class object:
         self.densityWeight = materialWeight.density
         self.massPart = self.densityPart * self.volume
         self.isWeightAdded = False
-
+        print("Parameters Initialized\nPrint a {1} made of {2} out of {0}, and a weight of {3}\n".format(matPrint.name, self.name, self.materialPart.name,matWeight.name))
 
     def addWeight(self, width, height):
         self.barWidth = width
@@ -33,71 +32,54 @@ class object:
     def geometry(self):
         print(self.height, self.width, self.length)
 
+    def calculateWeightMass(self):
+        #PseudoCode
+        # Find mass of the Weight
+        # Find volume of that Weight
+        # Find the mass of the equivalent Print that's removed to make space for the Weight.
+        # Take the mass of the original object, subtract the mass of the Print and the Weight
+        # Calculate the error between the mass of the original object and the Print and weight
+        if self.isWeightAdded == True:
+            #Initial Conditions
+            isNotConverged = True
+            counter = 0
+            massPart = self.massPart
+            densityWeight = self.densityWeight
+            densityPrint = self.densityPrint
+            massPrint = self.volume * densityPrint
+            massWeight = massPart - massPrint
+            volumeWeight = massWeight / densityWeight
+            massError = volumeWeight * densityPrint #This is the volume of weight removed from the print.
+            massPrint = massPrint - massError
+
+            while isNotConverged:
+                massError = massPart - (massWeight + massPrint)
+                volumeError = massError / densityWeight
+                massPrint = massPrint - volumeError
+                massWeight = massWeight + massError
+                counter += 1
+                if counter > 150 or round(massError,1) < 0.01:
+                    isNotConverged = False
+                print("Loop: {0:2}. The mass print:{1:.2f}, weight:{2:.2f}, error:{3:.2f}".format(counter, massPrint, massWeight, massError))
+
+            #Outputs
+            self.massPrint = massPrint
+            self.volumePrint = massPrint / densityPrint
+            self.massWeight = massWeight
+            self.volumeWeight = massWeight / densityWeight
+        else:
+            print("The part has been created. It is ", obj.isWeightAdded,"the solution can be found")
+    # def testObject(self):
+
+    
 ##Setup Variables and Initial Conditions
 matPrint = material("ABS", 1.1)
 matWeight = material("314 SS", 7.7)
 matToMimic = material("Bone", 2.0)
-
 obj = object("Tibia", matToMimic, matPrint, matWeight, 400)
-# objectPrinted = object("3D Print", matPrint)
-# objectWeight = object("Weight Insert", matWeight)
-
-# obj.massPrinted = obj.volume * matPrint.density
-# obj.massWeight = obj.massPart - obj.massPrinted
-# obj.massWeight = obj.volume * matWeight.density
-
-print(matPrint.name, "Object to print is a ", obj.name, "and the material is", obj.materialPart.name)
-# print("the mass of the [actual object, printed part, weight material as part] is [\n", obj.weight, obj.printedWeight, obj.weightWeight, "]")
-
-##Determine the optimal void volume to be contained by the weight to match the actual parts weight.
-# object.ratio = #Ratio is the ratio of weight to printed part.
-# objectWeight.height = 5
-# objectWeight.width = 5
-# objectWeight.length = (obj.volume - objectPrinted.volume) / (objectWeight.height * objectWeight.width)
-# print(objectWeight.length)
-# objectWeight.geometry()
-#
-print("The part has been created. \nIt is ", obj.isWeightAdded,"the solution can be found")
 obj.addWeight(2,2) #In the future this can be monte carolo'd to find optimal size parameters.
-massPrint = obj.densityPrint * obj.volume
-massWeight = obj.massPart - massPrint
-volumeWeight = massWeight / obj.densityWeight
-barLength = volumeWeight / (obj.barWidth * obj.barHeight)
-massError = obj.massPart - (massPrint + massWeight)
-print("The bar Length found is ", round(barLength,2), 'with a mass error of ', massError)
+obj.calculateWeightMass()
 
-##Now must find the additional mass to be removed from this volume of material.
-
-# massPrintRemoved = volumeWeight * obj.densityPrint
-# massWeight2 = massWeight + massPrintRemoved
-# volumeWeight2 = massWeight2 / obj.densityWeight
-# barLength2 = volumeWeight2 / (obj.barWidth * obj.barHeight)
-# print("The bar Length found is ", round(barLength2,2))
-
-#PseudoCode
-# Find mass of the Weight
-# Find volume of that Weight
-# Find the mass of the equivalent Print that's removed to make space for the Weight.
-# Take the mass of the original object, subtract the mass of the Print and the Weight
-# Calculate the error between the mass of the original object and the Print and weight
-
-isNotConverged = True
-counter = 0
-while isNotConverged:
-    massWeight = obj.massPart - massPrint
-    volumeWeight = massWeight / obj.densityWeight
-    massPrintRemoved = volumeWeight * obj.densityPrint
-    massError = obj.massPart - (massPrint + massWeight - massPrintRemoved)
-    # New Variables
-    massPrint = massPrint - massPrintRemoved
-
-
-    # barLengthOld = barLength
-    # barLength = volumeWeight / (obj.barWidth * obj.barHeight)
-    # print("The bar Length found is ", round(barLength2,2))
-    # if round(barLength,2) == round(barLengthOld,2):
-        # isNotConverged = False
-    counter +=1
-    if counter >15:
-        isNotConverged = False
-    print("Loop:", counter, "The mass [print, weight, print removed, error] is \n", round(massPrint,3), round(massWeight,3), round(massPrintRemoved,3), round(massError,4))
+barLength = obj.volumeWeight / (obj.barWidth * obj.barHeight)
+# massError = obj.massPart - (massPrint + massWeight)
+print("The bar Length found is ", round(barLength,2))
